@@ -1,5 +1,7 @@
 import './index.css'
 import { FaRegArrowAltCircleDown, FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight, FaRegArrowAltCircleUp } from 'react-icons/fa';
+import React from 'react';
+
 
 
 function Tetris() {
@@ -46,17 +48,40 @@ function Tetris() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1]
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     ]
-
-  const piece = {
-    position: { x:5, y:5 },
-    shape: [
-      [1,1],
-      [1,1]
+  //Pieces
+  const PIECES =[
+    [
+    [1, 1],
+    [1, 1]
+    ],
+    [
+      [1, 1, 1, 1]
+    ],
+    [
+      [0, 1 ,0 ],
+      [1, 1, 1,]
+    ],
+    [
+      [1, 1, 1],
+      [1, 0, 0]
+    ],
+    [
+      [1,1,0],
+      [0,1,1]
+    ],
+    [
+      [0,1,1],
+      [1,1,0]
     ]
-  }
+]
     
+  const piece = {
+    position: { x:Math.floor(Math.random()*BOARD_WIDTH/2+2), y:5 },
+    shape: PIECES[Math.floor(Math.random()*PIECES.length)]
+  }
+
 
   // 2. Game loop
   function draw(){
@@ -91,9 +116,7 @@ function Tetris() {
     previoustime = time;
     deltaTime +=elapsedtime;
 
-    // console.log ("elapsed:",elapsedtime ," deltatime:", deltaTime, "previousTime",previoustime)
-
-    if (deltaTime >= 1000){
+    if (deltaTime >= 500){
       piece.position.y++
       deltaTime=0;
       if(checkCollision()){
@@ -128,11 +151,16 @@ function Tetris() {
         removeRows();
       }
     }
+    if(event.key==='ArrowUp'){
+      rotar();   
+    }
   })
-
+  // Check collision
   function checkCollision(){
     return piece.shape.find((row,y)=>{
       return row.find((value,x)=>{
+        //PORQUE DA GAMEOVER SIN RAZON APARENTE??
+        // console.log(value, board[y+piece.position.y]?.[x+piece.position.x],y+piece.position.y,x+piece.position.x,board) 
           return(
             value!==0 && board[y+piece.position.y]?.[x+piece.position.x]!==0
           )
@@ -147,8 +175,19 @@ function Tetris() {
         }
       })
     })
-    piece.position.x=0;
+    //reset position
+    piece.position.x=Math.floor((Math.random()*BOARD_WIDTH/2+1));
     piece.position.y=0;
+    //random shape
+    piece.shape = PIECES[Math.floor(Math.random()*PIECES.length)]
+
+    // GAME OVER
+
+    if (checkCollision()){
+      // console.log("Tablero GAMEOVER", board)
+      window.alert('GAME OVER' );
+      board.forEach((row) => row.fill(0));
+    }
   }
   function removeRows(){
     const rowsToRemove:number[] = [];
@@ -164,11 +203,8 @@ function Tetris() {
       board.unshift(newRow)
     });
   }
-  // function rotatePiece()
 
-  const handleClick = (e: React.MouseEvent<HTMLElement>)=>{
-    const id = e.currentTarget.id;
-
+  const keysTouchMove = (id:string,e: React.TouchEvent<HTMLButtonElement>)=>{
     switch (id) {
       case 'left-button':
         piece.position.x--;
@@ -177,7 +213,7 @@ function Tetris() {
         }
         break;
       case 'up-button':
-        console.log("Funcion rotar")
+        rotar();  
         break;
       case 'down-button':
         piece.position.y++;
@@ -197,17 +233,52 @@ function Tetris() {
       default:
         break;
     }
+    timer= setTimeout(() =>  keysTouchMove(id,e),touchduration-20);
   }
+
+  // Rotacion de piezas
+  function rotar(){
+    let newshape:number[][]=[];
+    let oldshape:number[][]=piece.shape;
+    let newrow:number[]= [];
+    for(let i=0;i<piece.shape[0].length;i++){
+      newrow=[];
+      for(let j=(piece.shape.length-1); j>=0;j--){
+         newrow.push(piece.shape[j][i]);
+      }
+      newshape.push(newrow);
+     }
+     piece.shape=newshape
+     if(checkCollision()){
+        piece.shape=oldshape;
+     }
+     newshape=[];
+     oldshape=[];
+     newrow=[];
+  }
+
+  let timer: ReturnType<typeof setTimeout>
+  const touchduration = 70; //  function starttimertouch(){
+  const starttimertouch = (e: React.TouchEvent<HTMLButtonElement>) => {
+
+    const id = e.currentTarget.id;
+    timer = setTimeout(() =>  keysTouchMove(id,e),touchduration);
+  }  
+
+  const endtimertouch = ()=>{
+    clearTimeout(timer);
+  }
+
   update()
 
   return (
     <>
     <div>
       <div className='buttons-div'>
-      <button id={'left-button'} onPointerDown={handleClick}><FaRegArrowAltCircleLeft size={50}/></button>
-      <button id={'up-button'} onClick={handleClick}><FaRegArrowAltCircleUp size={50}/></button>
-      <button id={'down-button'} onClick={handleClick}><FaRegArrowAltCircleDown size={50}/></button>
-      <button id={'right-button'} onClick={handleClick}><FaRegArrowAltCircleRight size={50} /></button>
+      <button id={'left-button'} onTouchStart={starttimertouch} onTouchEnd={endtimertouch}><FaRegArrowAltCircleLeft size={50}/></button>
+      <button id={'up-button'} onTouchStart={starttimertouch} onTouchEnd={endtimertouch}><FaRegArrowAltCircleUp size={50}/></button>
+      <button id={'down-button'} onTouchStart={starttimertouch} onTouchEnd={endtimertouch}><FaRegArrowAltCircleDown size={50}/></button>
+      <button id={'right-button'} onTouchStart={starttimertouch} onTouchEnd={endtimertouch}><FaRegArrowAltCircleRight size={50} /></button>
       </div>
     </div>
 

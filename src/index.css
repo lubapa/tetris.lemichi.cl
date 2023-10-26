@@ -36,12 +36,12 @@ body {
   margin-top: 10px;
   display: flex;
   flex-direction: row;
-  gap: 10px;
+  gap: 20px;
 }
 button{
   display:flex;
-  height: 48px;
-  width: 48px;
+  height: 60px;
+  width: 60px;
   align-items: center;
   justify-content: center;
 }

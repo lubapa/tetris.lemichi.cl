@@ -1,9 +1,11 @@
-
 import './index.css'
+import { FaRegArrowAltCircleDown, FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight, FaRegArrowAltCircleUp } from 'react-icons/fa';
+
 
 function Tetris() {
-  const canvas:HTMLCanvasElement = document.querySelector('canvas') as HTMLCanvasElement;
+  const canvas:HTMLCanvasElement = document.getElementById('tetriscanvas') as HTMLCanvasElement;
   const context:CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRenderingContext2D;
+
   
   const BLOCK_SIZE    = 20; // 20 px
   const BOARD_WIDTH   = 14; // 14 bloques
@@ -78,7 +80,29 @@ function Tetris() {
       })
     })
   }
-  function update():void{
+
+  let deltaTime:number = 0;
+  let previoustime:number ;
+  function update(time=0):void{
+    if (isNaN(deltaTime)){
+      deltaTime=0;
+    }
+    const elapsedtime = time - previoustime;
+    previoustime = time;
+    deltaTime +=elapsedtime;
+
+    // console.log ("elapsed:",elapsedtime ," deltatime:", deltaTime, "previousTime",previoustime)
+
+    if (deltaTime >= 1000){
+      piece.position.y++
+      deltaTime=0;
+      if(checkCollision()){
+       piece.position.y--;
+       solidifyPiece();
+       removeRows(); 
+      }
+    }
+
     draw();
     window.requestAnimationFrame(update)
   }
@@ -99,7 +123,6 @@ function Tetris() {
     if(event.key==='ArrowDown'){
       piece.position.y++;
       if(checkCollision()){
-        console.log(checkCollision())
         piece.position.y--;
         solidifyPiece();
         removeRows();
@@ -133,21 +156,61 @@ function Tetris() {
     board.forEach((row,y) => {
       if (row.every( value => value ===1)){
         rowsToRemove.push(y);
-        console.log(rowsToRemove);
       }
     });
     rowsToRemove.forEach(y => {
       board.splice(y,1);
       const newRow:number[] = Array(BOARD_WIDTH).fill(0);
       board.unshift(newRow)
-      console.log(board)
     });
   }
+  // function rotatePiece()
 
+  const handleClick = (e: React.MouseEvent<HTMLElement>)=>{
+    const id = e.currentTarget.id;
+
+    switch (id) {
+      case 'left-button':
+        piece.position.x--;
+        if (checkCollision()){
+          piece.position.x++;
+        }
+        break;
+      case 'up-button':
+        console.log("Funcion rotar")
+        break;
+      case 'down-button':
+        piece.position.y++;
+        if (checkCollision()){
+          piece.position.y--;
+          solidifyPiece();
+          removeRows();
+        }
+        break;
+      case 'right-button':  
+        piece.position.x++;
+        if (checkCollision()){
+          piece.position.x--;
+        }
+        break;
+    
+      default:
+        break;
+    }
+  }
   update()
 
   return (
     <>
+    <div>
+      <div className='buttons-div'>
+      <button id={'left-button'} onPointerDown={handleClick}><FaRegArrowAltCircleLeft size={50}/></button>
+      <button id={'up-button'} onClick={handleClick}><FaRegArrowAltCircleUp size={50}/></button>
+      <button id={'down-button'} onClick={handleClick}><FaRegArrowAltCircleDown size={50}/></button>
+      <button id={'right-button'} onClick={handleClick}><FaRegArrowAltCircleRight size={50} /></button>
+      </div>
+    </div>
+
     </>
   )
 }

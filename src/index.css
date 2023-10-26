@@ -5,7 +5,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #0e0c0c;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -30,4 +30,18 @@ body {
   min-width: 320px;
   min-height: 100vh;
   place-content: center;
+  flex-direction: column-reverse;
+}
+.buttons-div{
+  margin-top: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+button{
+  display:flex;
+  height: 48px;
+  width: 48px;
+  align-items: center;
+  justify-content: center;
 }
